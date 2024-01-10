@@ -50,6 +50,11 @@ while True:
 
         x2 = int(max(x_) * W)
         y2 = int(max(y_) * H)
+        
+        ######test
+    
+     x2 = int(max(x_) * W)
+        y2 = int(max(y_) * H)
 
         prediction = model.predict([np.asarray(data_aux)])
         prediction_word = labels_dict[int(prediction[0])]
