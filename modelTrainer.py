@@ -1,31 +1,51 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression, RidgeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import accuracy_score # Accuracy metrics
 import pickle
 
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 
-data_dict = pickle.load(open('./data.pickle', 'rb'))
+df = pd.read_csv('dataset/coordinates_test.csv')
 
-data = np.asarray(data_dict['data'])
-labels = np.asarray(data_dict['labels'])
-
-x_train, x_test, y_train, y_test = train_test_split(data, labels,
-                                                    test_size=0.2, shuffle=True,
-                                                    stratify=labels)
-
-# training the model
-
-model = RandomForestClassifier()
-model.fit(x_train, y_train)
-y_predict = model.predict(x_test)
-
-score = accuracy_score(y_predict, y_test)
-
-print('{}% accuracy' .format(score*100))
-
-f = open('model.p', 'wb')
-pickle.dump({'data': model}, f)
-f.close()
+X = df.drop('class', axis=1)
+y = df['class']
 
 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1234)
+
+# print(X_train)
+# print(X_test)
+# print(y_train)
+# print(y_test)
+
+
+pipelines = {
+    'lr': make_pipeline(StandardScaler(), LogisticRegression(solver='lbfgs', max_iter=1000)),
+    'rc': make_pipeline(StandardScaler(), RidgeClassifier()),
+    'rf': make_pipeline(StandardScaler(), RandomForestClassifier()),
+    'gb': make_pipeline(StandardScaler(), GradientBoostingClassifier()),
+}
+
+
+fit_models = {}
+for algo, pipeline in pipelines.items():
+    print("a")
+    model = pipeline.fit(X_train, y_train)
+    print("b")
+    fit_models[algo] = model
+    print("c")
+
+print("done")
+
+#Loss function & accuracy test
+for algo, model in fit_models.items():
+    yhat = model.predict(X_test)
+    print(algo, accuracy_score(y_test, yhat))
+
+fit_models['rf'].predict(X_test)
+
+with open('model/body_language_demo.pkl', 'wb') as f:
+    pickle.dump(fit_models['rf'], f)
