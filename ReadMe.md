@@ -1,0 +1,1 @@
+A machine learning detection model to detect hands and sign language
